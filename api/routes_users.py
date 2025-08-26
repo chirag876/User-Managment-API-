@@ -22,7 +22,7 @@ from db.session import get_db
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from models.user import RoleEnum, User
-from schemas.user import UserCreate, UserOut
+from schemas.user import UserCreate, UserOut, UserListResponse
 from services import user_service
 from sqlalchemy.orm import Session
 
@@ -49,8 +49,8 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     return user_service.create_user(db, user_in)
 
 
-@router.get("/userprofile", response_model=UserOut)
-def get_userprofile(current_user: User = Depends(get_current_user)):
+@router.get("/me", response_model=UserOut)
+def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
@@ -64,11 +64,22 @@ def get_user(id: str, current_user: User = Depends(get_current_user), db: Sessio
     return user
 
 
-@router.get("", response_model=List[UserOut])
+@router.get("", response_model=UserListResponse)
 def list_users(page: int = 1, limit: int = 20, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if current_user.role != RoleEnum.admin:
         raise HTTPException(status_code=403, detail="Admins only")
     limit = min(limit, 100)
     offset = (page - 1) * limit
+    
+    # Get total count
+    total = db.query(User).count()
+    
+    # Get paginated users
     users = db.query(User).offset(offset).limit(limit).all()
-    return users
+    
+    return UserListResponse(
+        data=users,
+        page=page,
+        limit=limit,
+        total=total
+    )

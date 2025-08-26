@@ -90,5 +90,9 @@ def test_admin_can_list_users():
     res = client.get("/users", headers=headers)
     assert res.status_code == 200
     data = res.json()
-    assert isinstance(data, list)
-    assert len(data) >= 1
+    assert "data" in data
+    assert "page" in data
+    assert "limit" in data
+    assert "total" in data
+    assert isinstance(data["data"], list)
+    assert len(data["data"]) >= 1

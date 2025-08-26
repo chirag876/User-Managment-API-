@@ -16,6 +16,7 @@ Dependencies:
 """
 
 from core.security import create_access_token, verify_password
+from core.config import settings
 from db.session import get_db
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -33,4 +34,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     token = create_access_token({"sub": str(user.id), "role": user.role})
-    return {"access_token": token, "token_type": "bearer"}
+    return {
+        "access_token": token, 
+        "token_type": "bearer",
+        "expires_in": settings.ACCESS_TOKEN_EXPIRES_MIN * 60  # Convert to seconds
+    }
