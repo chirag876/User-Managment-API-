@@ -9,7 +9,7 @@ including a UUID identifier, name, email, and role, with ORM mode enabled for
 compatibility with SQLAlchemy models.
 """
 import uuid
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 from pydantic import ConfigDict   # 👈 yeh import missing tha
 
@@ -29,3 +29,9 @@ class UserOut(BaseModel):
     role: str
 
     model_config = ConfigDict(from_attributes=True)  
+
+class UserListResponse(BaseModel):
+    data: List[UserOut]
+    page: int
+    limit: int
+    total: int
